@@ -41,7 +41,7 @@
       user-select: none;
     }
     .modo-ataque th.recipe-head {
-      user-select: text; /* deixa selecionar/editar texto */
+      user-select: text;
       cursor: text;
     }
     .modo-ataque td {
@@ -108,7 +108,7 @@
   <div class="card">
     <h3>Modo de Ataque (ordem de execução por receita)</h3>
     <div class="muted">
-      1) Clique nos <b>títulos</b> e renomeie as receitas. 2) Clique nas células e escreva as etapas.
+      1) Clique nos <b>títulos</b> e renomeie as receitas. 2) Clique nas células e escreva as etapas. 3) Na última linha, <b>Enter cria uma etapa nova</b>.
     </div>
 
     <div class="toolbar">
@@ -129,32 +129,7 @@
             <th class="recipe-head" contenteditable="true" data-recipe="4">Receita 5</th>
           </tr>
         </thead>
-        <tbody id="modoAtaqueBody">
-          <tr>
-            <td>1</td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-          </tr>
-          <tr>
-            <td>3</td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-            <td class="editable" contenteditable="true"></td>
-          </tr>
-        </tbody>
+        <tbody id="modoAtaqueBody"></tbody>
       </table>
     </div>
   </div>
@@ -250,10 +225,10 @@
     $('msg').innerHTML = isErr ? `<span class="danger">${t}</span>` : t;
   }
 
-  // ===== Cabeçalhos das receitas (editáveis) =====
+  // ===== Modo de Ataque: headers editáveis =====
   function readAtaqueHeaders() {
     const ths = document.querySelectorAll('#modoAtaqueTable thead th.recipe-head');
-    return [...ths].map(th => (th.innerText || '').trim() || `Receita ${Number(th.dataset.recipe)+1}`);
+    return [...ths].map((th, i) => (th.innerText || '').trim() || `Receita ${i+1}`);
   }
   function applyAtaqueHeaders(headers) {
     const ths = document.querySelectorAll('#modoAtaqueTable thead th.recipe-head');
@@ -263,7 +238,37 @@
     });
   }
 
-  // ===== Linhas do modo de ataque =====
+  // ===== Modo de Ataque: linhas =====
+  function buildRow(etapaNum, receitas) {
+    const r = Array.isArray(receitas) ? receitas : ['', '', '', '', ''];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${etapaNum}</td>
+      <td class="editable" contenteditable="true"></td>
+      <td class="editable" contenteditable="true"></td>
+      <td class="editable" contenteditable="true"></td>
+      <td class="editable" contenteditable="true"></td>
+      <td class="editable" contenteditable="true"></td>
+    `;
+    const cells = tr.querySelectorAll('td.editable');
+    cells.forEach((c, idx) => c.innerText = r[idx] || '');
+    return tr;
+  }
+
+  function addNovaEtapa() {
+    const body = $('modoAtaqueBody');
+    const etapaNum = body.querySelectorAll('tr').length + 1;
+    body.appendChild(buildRow(etapaNum, ['', '', '', '', '']));
+    ativarEnterAuto();
+  }
+
+  function renumerarEtapas() {
+    const rows = $('modoAtaqueBody').querySelectorAll('tr');
+    rows.forEach((tr, i) => {
+      tr.querySelector('td').innerText = String(i + 1);
+    });
+  }
+
   function readModoAtaque() {
     const rows = [...$('modoAtaqueBody').querySelectorAll('tr')];
     return rows.map(r => {
@@ -279,24 +284,40 @@
     const body = $('modoAtaqueBody');
     body.innerHTML = '';
     const safe = Array.isArray(data) ? data : [];
-    const count = Math.max(3, safe.length || 0);
+    const count = Math.max(5, safe.length || 0); // começa com 5 linhas
 
     for (let i = 0; i < count; i++) {
-      const etapaNum = i + 1;
       const receitas = safe[i]?.receitas || ['', '', '', '', ''];
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${etapaNum}</td>
-        <td class="editable" contenteditable="true"></td>
-        <td class="editable" contenteditable="true"></td>
-        <td class="editable" contenteditable="true"></td>
-        <td class="editable" contenteditable="true"></td>
-        <td class="editable" contenteditable="true"></td>
-      `;
-      body.appendChild(tr);
-      const editCells = tr.querySelectorAll('td.editable');
-      editCells.forEach((c, idx) => c.innerText = receitas[idx] || '');
+      body.appendChild(buildRow(i + 1, receitas));
     }
+    ativarEnterAuto();
+  }
+
+  // ENTER: se estiver na última linha, cria nova etapa
+  function ativarEnterAuto() {
+    const body = $('modoAtaqueBody');
+    const cells = body.querySelectorAll('td.editable');
+
+    cells.forEach(cell => {
+      cell.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault(); // evita quebra de linha
+          const rows = body.querySelectorAll('tr');
+          const currentRow = cell.parentElement;
+
+          if (currentRow === rows[rows.length - 1]) {
+            addNovaEtapa();
+          } else {
+            // vai pra mesma coluna da próxima linha
+            const colIndex = [...currentRow.children].indexOf(cell);
+            const nextRow = currentRow.nextElementSibling;
+            if (nextRow && nextRow.children[colIndex]) {
+              nextRow.children[colIndex].focus();
+            }
+          }
+        }
+      };
+    });
   }
 
   // ===== Render ingredientes =====
@@ -360,7 +381,7 @@
     render();
   });
 
-  // ===== Save/Load (inclui modo de ataque + headers) =====
+  // ===== Save/Load =====
   $('saveBtn').addEventListener('click', () => {
     const payload = {
       nomeReceita: $('nomeReceita').value,
@@ -407,27 +428,16 @@
     render();
   });
 
-  // ===== Modo de Ataque: botões =====
-  $('addEtapaBtn').addEventListener('click', () => {
-    const body = $('modoAtaqueBody');
-    const etapaNum = body.querySelectorAll('tr').length + 1;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${etapaNum}</td>
-      <td class="editable" contenteditable="true"></td>
-      <td class="editable" contenteditable="true"></td>
-      <td class="editable" contenteditable="true"></td>
-      <td class="editable" contenteditable="true"></td>
-      <td class="editable" contenteditable="true"></td>
-    `;
-    body.appendChild(tr);
-  });
+  // ===== Botões modo de ataque =====
+  $('addEtapaBtn').addEventListener('click', addNovaEtapa);
 
   $('remEtapaBtn').addEventListener('click', () => {
     const body = $('modoAtaqueBody');
     const rows = body.querySelectorAll('tr');
     if (rows.length <= 1) return;
     body.removeChild(rows[rows.length - 1]);
+    renumerarEtapas();
+    ativarEnterAuto();
   });
 
   $('clearAtaqueBtn').addEventListener('click', () => {
@@ -435,7 +445,7 @@
     applyModoAtaque([]);
   });
 
-  // ===== PDF (inclui modo de ataque com nomes reais) =====
+  // ===== PDF =====
   $('pdfBtn').addEventListener('click', () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -513,7 +523,6 @@
     y += 6;
 
     doc.setFontSize(10);
-    // imprime tipo: Etapa 1: Nome1=... | Nome2=... ...
     ataque.forEach((r) => {
       const parts = r.receitas.map((t, i) => `${ataqueHeaders[i] || `Receita ${i+1}`}=${t || '-'}`);
       const line = `Etapa ${r.etapa}: ${parts.join('  |  ')}`;
@@ -533,6 +542,8 @@
   $('rendimento').addEventListener('input', render);
   $('margem').addEventListener('input', render);
 
+  // Inicial: já começa com 5 etapas
+  applyModoAtaque([]);
   render();
 </script>
 </body>
