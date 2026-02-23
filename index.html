@@ -23,63 +23,84 @@
     .kpi { font-size: 18px; font-weight: bold; }
     .right { text-align:right; }
     .danger { color:#b00020; }
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
 
     /* ===== MODO DE ATAQUE ===== */
-    .modo-ataque {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      table-layout: fixed;
-    }
+    .modo-ataque { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
     .modo-ataque th {
-      background-color: #2c3e50;
-      color: #fff;
-      padding: 10px;
-      text-align: center;
-      border-bottom: 1px solid #1f2b36;
-      font-size: 13px;
-      user-select: none;
+      background-color: #2c3e50; color: #fff; padding: 10px; text-align: center;
+      border-bottom: 1px solid #1f2b36; font-size: 13px; user-select: none;
     }
-    .modo-ataque th.recipe-head {
-      user-select: text;
-      cursor: text;
-    }
+    .modo-ataque th.recipe-head { user-select: text; cursor: text; outline: none; }
     .modo-ataque td {
-      border-bottom: 1px solid #eee;
-      border-right: 1px solid #eee;
-      padding: 10px;
-      vertical-align: top;
-      font-size: 13px;
-      word-wrap: break-word;
-      white-space: pre-wrap;
-      min-height: 42px;
+      border-bottom: 1px solid #eee; border-right: 1px solid #eee;
+      padding: 10px; vertical-align: top; font-size: 13px;
+      word-wrap: break-word; white-space: pre-wrap; /* cresce com enter */
     }
     .modo-ataque td:last-child { border-right: 0; }
     .modo-ataque tbody tr:nth-child(even) { background-color: #fafafa; }
     .modo-ataque td:first-child {
-      font-weight: bold;
-      text-align: center;
-      background-color: #f3f3f3;
-      width: 70px;
+      font-weight: bold; text-align: center; background-color: #f3f3f3;
+      width: 70px; user-select: none;
     }
-    .editable:focus,
-    .recipe-head:focus {
-      outline: 2px solid #111;
-      border-radius: 8px;
-      background: #fff;
+    .editable { outline: none; min-height: 24px; }
+    .editable:focus, .recipe-head:focus {
+      outline: 2px solid #111; border-radius: 8px; background: #fff;
     }
-    .toolbar {
-      display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;
+
+    /* ====== IMPRESSÃO BONITA ====== */
+    @media print {
+      /* A4 e margens */
+      @page { size: A4; margin: 12mm; }
+
+      body { margin: 0 !important; max-width: none !important; }
+      h1 { margin: 0 0 6mm !important; }
+
+      /* some com botões / inputs feios */
+      .no-print { display: none !important; }
+      .card { border: 0 !important; padding: 0 !important; margin: 0 0 8mm !important; }
+      .muted { color: #000 !important; }
+
+      /* deixa inputs com cara de texto impresso */
+      input, textarea, select {
+        border: 0 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        font-size: 12pt !important;
+      }
+      textarea { min-height: auto !important; }
+
+      /* evita cortar tabela no meio */
+      table { page-break-inside: auto; }
+      tr, td, th { page-break-inside: avoid; }
+      thead { display: table-header-group; } /* repete cabeçalho em cada página */
+      tfoot { display: table-footer-group; }
+
+      /* modo ataque mais “folha” */
+      .modo-ataque th, .modo-ataque td {
+        border: 1px solid #000 !important;
+      }
+      .modo-ataque th {
+        background: #eaeaea !important;
+        color: #000 !important;
+      }
+
+      /* KPIs mais contidos */
+      .kpi { font-size: 14pt !important; }
+
+      /* quebra de página manual (se quiser no futuro) */
+      .page-break { break-before: page; }
     }
   </style>
 
-  <!-- jsPDF (gera PDF) -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 
 <body>
   <h1>Calculadora de Ficha Técnica</h1>
-  <div class="muted">MVP (salva no navegador + exporta PDF). Depois a gente evolui pra “produto” com login e nuvem.</div>
+  <div class="muted no-print">MVP (salva no navegador + exporta PDF). Agora com impressão A4 bonitinha.</div>
 
   <div class="card">
     <h3>Dados da receita</h3>
@@ -99,22 +120,22 @@
     </div>
 
     <div style="margin-top:10px;">
-      <label>Modo de preparo (vai pro PDF)</label>
+      <label>Modo de preparo</label>
       <textarea id="modoPreparo" placeholder="Escreva o passo a passo..."></textarea>
     </div>
   </div>
 
-  <!-- ===== MODO DE ATAQUE ===== -->
   <div class="card">
     <h3>Modo de Ataque (ordem de execução por receita)</h3>
-    <div class="muted">
-      1) Clique nos <b>títulos</b> e renomeie as receitas. 2) Clique nas células e escreva as etapas. 3) Na última linha, <b>Enter cria uma etapa nova</b>.
+    <div class="muted no-print">
+      Clique nos <b>títulos</b> para renomear. As células crescem conforme você escreve. Use os botões para mais etapas.
     </div>
 
-    <div class="toolbar">
+    <div class="toolbar no-print">
       <button class="btn2" id="addEtapaBtn">Adicionar etapa</button>
       <button class="btn2" id="remEtapaBtn">Remover última etapa</button>
       <button class="btn2" id="clearAtaqueBtn">Limpar modo de ataque</button>
+      <button class="btn" id="printBtn">Imprimir (A4)</button>
     </div>
 
     <div style="margin-top:10px; overflow:auto;">
@@ -122,11 +143,11 @@
         <thead>
           <tr>
             <th>Etapa</th>
-            <th class="recipe-head" contenteditable="true" data-recipe="0">Receita 1</th>
-            <th class="recipe-head" contenteditable="true" data-recipe="1">Receita 2</th>
-            <th class="recipe-head" contenteditable="true" data-recipe="2">Receita 3</th>
-            <th class="recipe-head" contenteditable="true" data-recipe="3">Receita 4</th>
-            <th class="recipe-head" contenteditable="true" data-recipe="4">Receita 5</th>
+            <th class="recipe-head" contenteditable="true">Receita 1</th>
+            <th class="recipe-head" contenteditable="true">Receita 2</th>
+            <th class="recipe-head" contenteditable="true">Receita 3</th>
+            <th class="recipe-head" contenteditable="true">Receita 4</th>
+            <th class="recipe-head" contenteditable="true">Receita 5</th>
           </tr>
         </thead>
         <tbody id="modoAtaqueBody"></tbody>
@@ -134,7 +155,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card no-print">
     <h3>Adicionar ingrediente na receita</h3>
     <div class="row">
       <div class="col">
@@ -170,7 +191,7 @@
     <div id="msg" class="muted" style="margin-top:10px;"></div>
   </div>
 
-  <div class="card">
+  <div class="card no-print">
     <h3>Ingredientes</h3>
     <table>
       <thead>
@@ -200,10 +221,6 @@
         <div class="kpi" id="precoSugerido">R$ 0,00</div>
       </div>
     </div>
-
-    <div class="muted" style="margin-top:8px;">
-      Fórmula preço sugerido: <b>preço = custo / (1 - margem%)</b>. Ex.: margem 60% ⇒ divide por 0,40.
-    </div>
   </div>
 
 <script>
@@ -225,11 +242,12 @@
     $('msg').innerHTML = isErr ? `<span class="danger">${t}</span>` : t;
   }
 
-  // ===== Modo de Ataque: headers editáveis =====
+  // ===== MODO DE ATAQUE =====
   function readAtaqueHeaders() {
     const ths = document.querySelectorAll('#modoAtaqueTable thead th.recipe-head');
     return [...ths].map((th, i) => (th.innerText || '').trim() || `Receita ${i+1}`);
   }
+
   function applyAtaqueHeaders(headers) {
     const ths = document.querySelectorAll('#modoAtaqueTable thead th.recipe-head');
     const safe = Array.isArray(headers) ? headers : [];
@@ -238,7 +256,6 @@
     });
   }
 
-  // ===== Modo de Ataque: linhas =====
   function buildRow(etapaNum, receitas) {
     const r = Array.isArray(receitas) ? receitas : ['', '', '', '', ''];
     const tr = document.createElement('tr');
@@ -255,69 +272,34 @@
     return tr;
   }
 
-  function addNovaEtapa() {
-    const body = $('modoAtaqueBody');
-    const etapaNum = body.querySelectorAll('tr').length + 1;
-    body.appendChild(buildRow(etapaNum, ['', '', '', '', '']));
-    ativarEnterAuto();
-  }
-
   function renumerarEtapas() {
     const rows = $('modoAtaqueBody').querySelectorAll('tr');
-    rows.forEach((tr, i) => {
-      tr.querySelector('td').innerText = String(i + 1);
-    });
+    rows.forEach((tr, i) => tr.querySelector('td').innerText = String(i + 1));
+  }
+
+  function addNovaEtapa(receitas=['','','','','']) {
+    const body = $('modoAtaqueBody');
+    const etapaNum = body.querySelectorAll('tr').length + 1;
+    body.appendChild(buildRow(etapaNum, receitas));
   }
 
   function readModoAtaque() {
     const rows = [...$('modoAtaqueBody').querySelectorAll('tr')];
     return rows.map(r => {
       const cells = [...r.querySelectorAll('td')];
-      return {
-        etapa: cells[0].innerText.trim(),
-        receitas: cells.slice(1).map(c => c.innerText.trim())
-      };
+      return { etapa: cells[0].innerText.trim(), receitas: cells.slice(1).map(c => c.innerText) };
     });
   }
 
-  function applyModoAtaque(data) {
+  function applyModoAtaque(data, minRows=5) {
     const body = $('modoAtaqueBody');
     body.innerHTML = '';
     const safe = Array.isArray(data) ? data : [];
-    const count = Math.max(5, safe.length || 0); // começa com 5 linhas
-
+    const count = Math.max(minRows, safe.length || 0);
     for (let i = 0; i < count; i++) {
       const receitas = safe[i]?.receitas || ['', '', '', '', ''];
       body.appendChild(buildRow(i + 1, receitas));
     }
-    ativarEnterAuto();
-  }
-
-  // ENTER: se estiver na última linha, cria nova etapa
-  function ativarEnterAuto() {
-    const body = $('modoAtaqueBody');
-    const cells = body.querySelectorAll('td.editable');
-
-    cells.forEach(cell => {
-      cell.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault(); // evita quebra de linha
-          const rows = body.querySelectorAll('tr');
-          const currentRow = cell.parentElement;
-
-          if (currentRow === rows[rows.length - 1]) {
-            addNovaEtapa();
-          } else {
-            // vai pra mesma coluna da próxima linha
-            const colIndex = [...currentRow.children].indexOf(cell);
-            const nextRow = currentRow.nextElementSibling;
-            if (nextRow && nextRow.children[colIndex]) {
-              nextRow.children[colIndex].focus();
-            }
-          }
-        }
-      };
-    });
   }
 
   // ===== Render ingredientes =====
@@ -337,9 +319,7 @@
         <td class="right">${Number(it.qtd || 0).toLocaleString('pt-BR')}</td>
         <td class="right">${money(it.precoBase)}</td>
         <td class="right"><b>${money(c)}</b></td>
-        <td class="right">
-          <button class="btn2" onclick="removeItem(${idx})">Remover</button>
-        </td>
+        <td class="right"><button class="btn2" onclick="removeItem(${idx})">Remover</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -362,8 +342,7 @@
     render();
   };
 
-  // ===== Ingredientes =====
-  $('addBtn').addEventListener('click', () => {
+  $('addBtn')?.addEventListener('click', () => {
     const nome = $('ingNome').value.trim();
     const un = $('ingUn').value;
     const qtd = Number($('ingQtd').value);
@@ -381,8 +360,7 @@
     render();
   });
 
-  // ===== Save/Load =====
-  $('saveBtn').addEventListener('click', () => {
+  $('saveBtn')?.addEventListener('click', () => {
     const payload = {
       nomeReceita: $('nomeReceita').value,
       rendimento: $('rendimento').value,
@@ -396,7 +374,7 @@
     msg('Salvo no navegador ✅');
   });
 
-  $('loadBtn').addEventListener('click', () => {
+  $('loadBtn')?.addEventListener('click', () => {
     const raw = localStorage.getItem('ficha_mvp_ultima');
     if (!raw) return msg('Nada salvo ainda.', true);
     const payload = JSON.parse(raw);
@@ -408,13 +386,13 @@
     state.itens = payload.itens || [];
 
     applyAtaqueHeaders(payload.modoAtaqueHeaders || []);
-    applyModoAtaque(payload.modoAtaque || []);
+    applyModoAtaque(payload.modoAtaque || [], 5);
 
     msg('Carregado ✅');
     render();
   });
 
-  $('clearBtn').addEventListener('click', () => {
+  $('clearBtn')?.addEventListener('click', () => {
     state.itens = [];
     $('nomeReceita').value = '';
     $('modoPreparo').value = '';
@@ -422,128 +400,29 @@
     $('margem').value = 60;
 
     applyAtaqueHeaders([]);
-    applyModoAtaque([]);
+    applyModoAtaque([], 5);
 
     msg('Limpo ✅');
     render();
   });
 
-  // ===== Botões modo de ataque =====
-  $('addEtapaBtn').addEventListener('click', addNovaEtapa);
-
+  $('addEtapaBtn').addEventListener('click', () => addNovaEtapa());
   $('remEtapaBtn').addEventListener('click', () => {
     const body = $('modoAtaqueBody');
     const rows = body.querySelectorAll('tr');
     if (rows.length <= 1) return;
     body.removeChild(rows[rows.length - 1]);
     renumerarEtapas();
-    ativarEnterAuto();
   });
-
   $('clearAtaqueBtn').addEventListener('click', () => {
     applyAtaqueHeaders([]);
-    applyModoAtaque([]);
+    applyModoAtaque([], 5);
   });
 
-  // ===== PDF =====
-  $('pdfBtn').addEventListener('click', () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+  $('printBtn').addEventListener('click', () => window.print());
 
-    const nome = ($('nomeReceita').value || 'Ficha_Tecnica').trim();
-    const rendimento = Math.max(1, Number($('rendimento').value) || 1);
-    const margem = Math.max(0, Math.min(99, Number($('margem').value) || 0));
-    const modo = $('modoPreparo').value || '';
-
-    let total = 0;
-    const linhas = state.itens.map(it => {
-      const c = calcItemCost(it);
-      total += c;
-      return [it.nome, it.un, String(it.qtd), money(it.precoBase), money(c)];
-    });
-
-    const custoPorcao = total / rendimento;
-    const fator = 1 - (margem / 100);
-    const precoSug = fator > 0 ? (total / fator) : 0;
-    const precoPorcao = precoSug / rendimento;
-
-    doc.setFontSize(16);
-    doc.text(`Ficha Técnica - ${nome}`, 14, 16);
-
-    doc.setFontSize(11);
-    doc.text(`Rendimento: ${rendimento} porções`, 14, 24);
-    doc.text(`Margem: ${margem}%`, 14, 30);
-
-    doc.text(`Custo total: ${money(total)}`, 14, 38);
-    doc.text(`Custo por porção: ${money(custoPorcao)}`, 14, 44);
-    doc.text(`Preço sugerido: ${money(precoSug)} (≈ ${money(precoPorcao)}/porção)`, 14, 50);
-
-    // Ingredientes
-    let y = 60;
-    doc.setFontSize(12);
-    doc.text('Ingredientes', 14, y);
-    y += 6;
-
-    doc.setFontSize(10);
-    const headers = ['Ingrediente', 'Un', 'Qtd', 'Preço base', 'Custo'];
-    doc.text(headers.join(' | '), 14, y);
-    y += 6;
-
-    linhas.forEach(row => {
-      const line = row.join(' | ');
-      if (y > 270) { doc.addPage(); y = 14; }
-      doc.text(line, 14, y);
-      y += 6;
-    });
-
-    // Modo de preparo
-    y += 6;
-    if (y > 260) { doc.addPage(); y = 14; }
-    doc.setFontSize(12);
-    doc.text('Modo de preparo', 14, y);
-    y += 6;
-
-    doc.setFontSize(10);
-    const wrapped = doc.splitTextToSize(modo || '-', 180);
-    wrapped.forEach(t => {
-      if (y > 280) { doc.addPage(); y = 14; }
-      doc.text(t, 14, y);
-      y += 5;
-    });
-
-    // Modo de ataque
-    const ataqueHeaders = readAtaqueHeaders();
-    const ataque = readModoAtaque();
-
-    y += 8;
-    if (y > 260) { doc.addPage(); y = 14; }
-
-    doc.setFontSize(12);
-    doc.text('Modo de Ataque (ordem de execução)', 14, y);
-    y += 6;
-
-    doc.setFontSize(10);
-    ataque.forEach((r) => {
-      const parts = r.receitas.map((t, i) => `${ataqueHeaders[i] || `Receita ${i+1}`}=${t || '-'}`);
-      const line = `Etapa ${r.etapa}: ${parts.join('  |  ')}`;
-      const wrappedLine = doc.splitTextToSize(line, 180);
-      wrappedLine.forEach(t => {
-        if (y > 280) { doc.addPage(); y = 14; }
-        doc.text(t, 14, y);
-        y += 5;
-      });
-      y += 1;
-    });
-
-    doc.save(`${nome.replace(/[\\/:*?"<>|]/g, '-')}_ficha_tecnica.pdf`);
-  });
-
-  // KPIs
-  $('rendimento').addEventListener('input', render);
-  $('margem').addEventListener('input', render);
-
-  // Inicial: já começa com 5 etapas
-  applyModoAtaque([]);
+  // inicia com 5 linhas
+  applyModoAtaque([], 5);
   render();
 </script>
 </body>
