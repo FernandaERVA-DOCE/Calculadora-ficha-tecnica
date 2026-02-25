@@ -41,6 +41,7 @@
     <div class="muted">Esses dados aparecem na impressão.</div>
   </div>
 
+  <!-- ✅ DADOS DA RECEITA -->
   <div class="card">
     <h3>Dados da receita</h3>
     <div class="row">
@@ -64,6 +65,40 @@
     </div>
   </div>
 
+  <!-- ✅ AGORA: INGREDIENTES VEM ANTES DO MODO DE ATAQUE -->
+  <div class="card">
+    <h3>Ingredientes</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Ingrediente</th>
+          <th>Un</th>
+          <th class="right">Qtd</th>
+          <th class="right">Preço base</th>
+          <th class="right">Custo</th>
+          <th class="right no-print">Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div style="margin-top:12px;" class="row">
+      <div class="col card kpi-box" style="margin:0;">
+        <div class="muted">Custo total</div>
+        <div class="kpi" id="custoTotal">R$ 0,00</div>
+      </div>
+      <div class="col card kpi-box" style="margin:0;">
+        <div class="muted">Custo por porção</div>
+        <div class="kpi" id="custoPorcao">R$ 0,00</div>
+      </div>
+      <div class="col card kpi-box" style="margin:0;">
+        <div class="muted">Preço sugerido (com margem)</div>
+        <div class="kpi" id="precoSugerido">R$ 0,00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ MODO DE ATAQUE -->
   <div class="card">
     <h3>Modo de Ataque (ordem de execução por receita)</h3>
     <div class="muted no-print">
@@ -94,6 +129,7 @@
     </div>
   </div>
 
+  <!-- ✅ FORMULÁRIO (NÃO IMPRIME) -->
   <div class="card no-print">
     <h3>Adicionar ingrediente na receita</h3>
     <div class="row">
@@ -128,38 +164,6 @@
       <button class="btn" id="pdfBtn">Baixar PDF</button>
     </div>
     <div id="msg" class="muted" style="margin-top:10px;"></div>
-  </div>
-
-  <div class="card">
-    <h3>Ingredientes</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Ingrediente</th>
-          <th>Un</th>
-          <th class="right">Qtd</th>
-          <th class="right">Preço base</th>
-          <th class="right">Custo</th>
-          <th class="right no-print">Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-
-    <div style="margin-top:12px;" class="row">
-      <div class="col card kpi-box" style="margin:0;">
-        <div class="muted">Custo total</div>
-        <div class="kpi" id="custoTotal">R$ 0,00</div>
-      </div>
-      <div class="col card kpi-box" style="margin:0;">
-        <div class="muted">Custo por porção</div>
-        <div class="kpi" id="custoPorcao">R$ 0,00</div>
-      </div>
-      <div class="col card kpi-box" style="margin:0;">
-        <div class="muted">Preço sugerido (com margem)</div>
-        <div class="kpi" id="precoSugerido">R$ 0,00</div>
-      </div>
-    </div>
   </div>
 
 <script>
@@ -305,6 +309,9 @@
 
   $('saveBtn')?.addEventListener('click', () => {
     const payload = {
+      nomeAluno: $('nomeAluno')?.value || '',
+      raAluno: $('raAluno')?.value || '',
+      turmaAluno: $('turmaAluno')?.value || '',
       nomeReceita: $('nomeReceita').value,
       rendimento: $('rendimento').value,
       margem: $('margem').value,
@@ -312,7 +319,6 @@
       itens: state.itens,
       modoAtaqueHeaders: readAtaqueHeaders(),
       modoAtaque: readModoAtaque()
-      // (opcional no futuro: salvar nome do aluno também)
     };
     localStorage.setItem('ficha_mvp_ultima', JSON.stringify(payload));
     msg('Salvo no navegador ✅');
@@ -322,6 +328,10 @@
     const raw = localStorage.getItem('ficha_mvp_ultima');
     if (!raw) return msg('Nada salvo ainda.', true);
     const payload = JSON.parse(raw);
+
+    $('nomeAluno').value = payload.nomeAluno || '';
+    $('raAluno').value = payload.raAluno || '';
+    $('turmaAluno').value = payload.turmaAluno || '';
 
     $('nomeReceita').value = payload.nomeReceita || '';
     $('rendimento').value = payload.rendimento || 1;
@@ -338,6 +348,10 @@
 
   $('clearBtn')?.addEventListener('click', () => {
     state.itens = [];
+    $('nomeAluno').value = '';
+    $('raAluno').value = '';
+    $('turmaAluno').value = '';
+
     $('nomeReceita').value = '';
     $('modoPreparo').value = '';
     $('rendimento').value = 10;
