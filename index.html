@@ -50,18 +50,14 @@
 
     /* ====== IMPRESSÃO BONITA ====== */
     @media print {
-      /* A4 e margens */
       @page { size: A4; margin: 12mm; }
-
       body { margin: 0 !important; max-width: none !important; }
       h1 { margin: 0 0 6mm !important; }
 
-      /* some com botões / inputs feios */
       .no-print { display: none !important; }
       .card { border: 0 !important; padding: 0 !important; margin: 0 0 8mm !important; }
       .muted { color: #000 !important; }
 
-      /* deixa inputs com cara de texto impresso */
       input, textarea, select {
         border: 0 !important;
         padding: 0 !important;
@@ -72,25 +68,15 @@
       }
       textarea { min-height: auto !important; }
 
-      /* evita cortar tabela no meio */
       table { page-break-inside: auto; }
       tr, td, th { page-break-inside: avoid; }
-      thead { display: table-header-group; } /* repete cabeçalho em cada página */
+      thead { display: table-header-group; }
       tfoot { display: table-footer-group; }
 
-      /* modo ataque mais “folha” */
-      .modo-ataque th, .modo-ataque td {
-        border: 1px solid #000 !important;
-      }
-      .modo-ataque th {
-        background: #eaeaea !important;
-        color: #000 !important;
-      }
+      .modo-ataque th, .modo-ataque td { border: 1px solid #000 !important; }
+      .modo-ataque th { background: #eaeaea !important; color: #000 !important; }
 
-      /* KPIs mais contidos */
       .kpi { font-size: 14pt !important; }
-
-      /* quebra de página manual (se quiser no futuro) */
       .page-break { break-before: page; }
     }
   </style>
@@ -231,11 +217,18 @@
     return (n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
+  /* ✅ PREÇO OPCIONAL */
   function calcItemCost(item) {
     const qtd = Number(item.qtd) || 0;
-    const precoBase = Number(item.precoBase) || 0;
-    if (item.un === 'g' || item.un === 'ml') return qtd * (precoBase / 1000);
-    return qtd * precoBase;
+
+    // preço pode ser "" (vazio) -> custo 0
+    const raw = item.precoBase;
+    const preco = (raw === '' || raw === null || raw === undefined) ? NaN : Number(raw);
+
+    if (!isFinite(preco) || preco <= 0) return 0;
+
+    if (item.un === 'g' || item.un === 'ml') return qtd * (preco / 1000);
+    return qtd * preco;
   }
 
   function msg(t, isErr=false) {
@@ -312,12 +305,16 @@
       const c = calcItemCost(it);
       total += c;
 
+      const precoMostra = (it.precoBase === '' || it.precoBase === null || it.precoBase === undefined)
+        ? '—'
+        : money(Number(it.precoBase));
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${it.nome}</td>
         <td>${it.un}</td>
         <td class="right">${Number(it.qtd || 0).toLocaleString('pt-BR')}</td>
-        <td class="right">${money(it.precoBase)}</td>
+        <td class="right">${precoMostra}</td>
         <td class="right"><b>${money(c)}</b></td>
         <td class="right"><button class="btn2" onclick="removeItem(${idx})">Remover</button></td>
       `;
@@ -342,21 +339,23 @@
     render();
   };
 
+  /* ✅ PREÇO NÃO OBRIGATÓRIO NO ADD */
   $('addBtn')?.addEventListener('click', () => {
     const nome = $('ingNome').value.trim();
     const un = $('ingUn').value;
     const qtd = Number($('ingQtd').value);
-    const precoBase = Number($('ingPrecoBase').value);
+
+    const precoStr = $('ingPrecoBase').value.trim(); // pode ser ""
 
     if (!nome) return msg('Coloque o nome do ingrediente.', true);
     if (!qtd || qtd <= 0) return msg('Quantidade precisa ser maior que 0.', true);
-    if (!precoBase || precoBase <= 0) return msg('Preço base precisa ser maior que 0.', true);
 
-    state.itens.push({ nome, un, qtd, precoBase });
+    state.itens.push({ nome, un, qtd, precoBase: precoStr });
+
     $('ingNome').value = '';
     $('ingQtd').value = '';
     $('ingPrecoBase').value = '';
-    msg('Ingrediente adicionado ✅');
+    msg(precoStr ? 'Ingrediente adicionado ✅' : 'Ingrediente adicionado (sem preço) ✅');
     render();
   });
 
