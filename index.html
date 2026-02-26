@@ -41,7 +41,7 @@
     <div class="muted">Esses dados aparecem na impressão.</div>
   </div>
 
-  <!-- ✅ DADOS DA RECEITA -->
+  <!-- DADOS DA RECEITA -->
   <div class="card">
     <h3>Dados da receita</h3>
     <div class="row">
@@ -65,7 +65,7 @@
     </div>
   </div>
 
-  <!-- ✅ AGORA: INGREDIENTES VEM ANTES DO MODO DE ATAQUE -->
+  <!-- ✅ INGREDIENTES PRIMEIRO (IMPRIME) -->
   <div class="card">
     <h3>Ingredientes</h3>
     <table>
@@ -98,7 +98,7 @@
     </div>
   </div>
 
-  <!-- ✅ MODO DE ATAQUE -->
+  <!-- MODO DE ATAQUE -->
   <div class="card">
     <h3>Modo de Ataque (ordem de execução por receita)</h3>
     <div class="muted no-print">
@@ -129,7 +129,7 @@
     </div>
   </div>
 
-  <!-- ✅ FORMULÁRIO (NÃO IMPRIME) -->
+  <!-- ✅ ÚNICO FORM DE ADICIONAR (NÃO IMPRIME) -->
   <div class="card no-print">
     <h3>Adicionar ingrediente na receita</h3>
     <div class="row">
@@ -187,6 +187,7 @@
     $('msg').innerHTML = isErr ? `<span class="danger">${t}</span>` : t;
   }
 
+  // ===== MODO DE ATAQUE =====
   function readAtaqueHeaders() {
     const ths = document.querySelectorAll('#modoAtaqueTable thead th.recipe-head');
     return [...ths].map((th, i) => (th.innerText || '').trim() || `Receita ${i+1}`);
@@ -246,6 +247,7 @@
     }
   }
 
+  // ===== INGREDIENTES =====
   function render() {
     const tbody = $('tbody');
     tbody.innerHTML = '';
@@ -312,10 +314,12 @@
       nomeAluno: $('nomeAluno')?.value || '',
       raAluno: $('raAluno')?.value || '',
       turmaAluno: $('turmaAluno')?.value || '',
+
       nomeReceita: $('nomeReceita').value,
       rendimento: $('rendimento').value,
       margem: $('margem').value,
       modoPreparo: $('modoPreparo').value,
+
       itens: state.itens,
       modoAtaqueHeaders: readAtaqueHeaders(),
       modoAtaque: readModoAtaque()
@@ -337,8 +341,8 @@
     $('rendimento').value = payload.rendimento || 1;
     $('margem').value = payload.margem || 0;
     $('modoPreparo').value = payload.modoPreparo || '';
-    state.itens = payload.itens || [];
 
+    state.itens = payload.itens || [];
     applyAtaqueHeaders(payload.modoAtaqueHeaders || []);
     applyModoAtaque(payload.modoAtaque || [], 5);
 
