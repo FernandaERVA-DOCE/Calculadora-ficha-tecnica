@@ -1,98 +1,259 @@
-body {
-font-family: "Times New Roman", serif;
-margin: 18px auto;
-max-width: 980px;
-background:#f6f7f5;
+:root{
+  --bg:#f6f6f7;
+  --card:#ffffff;
+  --border:#e4e4e7;
+  --text:#111827;
+  --muted:#6b7280;
+  --primary:#111827;
 }
 
-h1{
-margin-bottom:10px;
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
 }
+
+.container{
+  max-width: 980px;
+  margin: 20px auto;
+  padding: 0 16px 40px;
+}
+
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom: 14px;
+}
+
+h1{ margin:0; font-size: 24px; }
+h2{ margin:0 0 12px; font-size: 18px; }
+.brand-sub{ color: var(--muted); margin-top: 4px; }
+.gastro-icons span{ margin-left: 6px; opacity: .8; }
 
 .card{
-border:1px solid #ddd;
-border-radius:12px;
-padding:14px;
-margin:12px 0;
-background:white;
-box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 14px;
 }
 
-.row{
-display:flex;
-gap:12px;
-flex-wrap:wrap;
+.grid3{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 800px){
+  .grid3{ grid-template-columns: 1fr; }
 }
 
-.col{
-flex:1;
-min-width:220px;
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom: 10px;
+}
+.field span{
+  font-size: 12px;
+  color: var(--muted);
 }
 
-label{
-display:block;
-font-size:12px;
-margin-bottom:4px;
+input, textarea{
+  width:100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 10px;
+  font-size: 14px;
+  background: #fff;
 }
 
-input,select,textarea{
-width:100%;
-padding:10px;
-border:1px solid #ccc;
-border-radius:10px;
+textarea{ resize: vertical; }
+
+.row-between{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
 }
 
-textarea{
-min-height:90px;
+.row-gap{
+  display:flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 button{
-padding:10px 14px;
-border-radius:10px;
-border:0;
-cursor:pointer;
+  border: 1px solid var(--border);
+  background: white;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor:pointer;
+  font-weight: 600;
 }
 
-.btn{
-background:#2f5d50;
-color:white;
+button.primary{
+  background: var(--primary);
+  color:white;
+  border-color: var(--primary);
 }
 
-.btn2{
-background:#eeeeee;
+button.secondary{
+  background: #f3f4f6;
+}
+
+button.danger{
+  background:#fff1f2;
+  border-color:#fecdd3;
+}
+
+.table-wrap{
+  width: 100%;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
 }
 
 table{
-width:100%;
-border-collapse:collapse;
-margin-top:10px;
+  width:100%;
+  border-collapse: collapse;
+  min-width: 720px;
+  background: white;
+}
+
+th, td{
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  text-align:left;
+  vertical-align: middle;
 }
 
 th{
-background:#2f5d50;
-color:white;
+  background:#fafafa;
+  font-size: 13px;
 }
 
-th,td{
-border-bottom:1px solid #eee;
-padding:10px;
+td input{
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 13px;
 }
 
-.modo-ataque th{
-background:#2f5d50;
-color:white;
+.cell-custo{
+  white-space: nowrap;
 }
 
-.kpi{
-font-size:18px;
-font-weight:bold;
-}
-
-.right{
-text-align:right;
+.totals{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 10px;
+  color: #111827;
 }
 
 .muted{
-font-size:12px;
-color:#666;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.lista-ataque{
+  margin: 0;
+  padding-left: 20px;
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+}
+
+.ataque-item{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.ataque-item input{
+  flex: 1;
+}
+
+.no-print {}
+
+/* ---------- PRINT VIEW (A4) ---------- */
+
+#printView{
+  display:none; /* só no print */
+}
+
+.print-page{
+  padding: 0;
+}
+
+.print-title{
+  font-size: 18pt;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.print-box{
+  border: 1px solid #111;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.print-box h3{
+  margin: 0 0 8px;
+  font-size: 12pt;
+}
+
+.print-grid3{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.print-text{
+  font-size: 11pt;
+  line-height: 1.35;
+}
+
+.print-table{
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.print-table th, .print-table td{
+  border-bottom: 1px solid #111;
+  padding: 6px;
+  font-size: 11pt;
+}
+
+.print-ol{
+  margin: 0;
+  padding-left: 18px;
+  font-size: 11pt;
+  line-height: 1.35;
+}
+
+/* ---------- PRINT RULES ---------- */
+@media print {
+
+  body{
+    background: white;
+  }
+
+  /* esconde a UI do app */
+  #app{ display:none !important; }
+
+  /* mostra o print view */
+  #printView{
+    display:block !important;
+    padding: 0;
+  }
+
+  /* evita quebrar caixa no meio */
+  .print-box{
+    page-break-inside: avoid;
+  }
 }
