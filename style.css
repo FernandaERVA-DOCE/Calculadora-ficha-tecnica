@@ -160,27 +160,43 @@ td input{
   margin-top: 10px;
 }
 
-.lista-ataque{
-  margin: 0;
-  padding-left: 20px;
-  display:flex;
-  flex-direction:column;
-  gap: 8px;
-}
-
-.ataque-item{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-
-.ataque-item input{
-  flex: 1;
-}
-
 .no-print {}
 
-/* ---------- PRINT VIEW (A4) ---------- */
+/* ===== Modo de ataque tabela ===== */
+.ataque-table-wrap table{
+  min-width: 900px;
+}
+
+.col-etapa{
+  width: 70px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.th-receita{
+  display:flex;
+  align-items:center;
+  gap: 6px;
+}
+
+.th-receita input.ataque-col-title{
+  font-weight: 700;
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.ataque-cell{
+  width: 100%;
+}
+
+.col-acao{
+  width: 90px;
+  white-space: nowrap;
+}
+
+/* ---------- PRINT VIEW ---------- */
 
 #printView{
   display:none; /* só no print */
@@ -227,13 +243,18 @@ td input{
   border-bottom: 1px solid #111;
   padding: 6px;
   font-size: 11pt;
+  vertical-align: top;
 }
 
-.print-ol{
-  margin: 0;
-  padding-left: 18px;
-  font-size: 11pt;
-  line-height: 1.35;
+.print-ataque-wrap{
+  overflow: hidden;
+}
+
+.print-ataque th:first-child,
+.print-ataque td:first-child{
+  width: 60px;
+  white-space: nowrap;
+  font-weight: 700;
 }
 
 /* ---------- PRINT RULES ---------- */
@@ -255,5 +276,10 @@ td input{
   /* evita quebrar caixa no meio */
   .print-box{
     page-break-inside: avoid;
+  }
+
+  /* placeholder não imprime */
+  ::placeholder{
+    color: transparent;
   }
 }
