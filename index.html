@@ -4,387 +4,500 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calculadora de Ficha Técnica</title>
-
   <link rel="stylesheet" href="./style.css">
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 
 <body>
 
-  <div class="header">
-    <div>
-      <h1>Calculadora de Ficha Técnica</h1>
-      <div class="brand-sub no-print">🍽️ Ficha + Modo de Ataque + impressão A4</div>
+  <!-- APP (tela) -->
+  <div id="app" class="container">
+    <div class="header">
+      <div>
+        <h1>Calculadora de Ficha Técnica</h1>
+        <div class="brand-sub no-print">🍽️ Ficha + Modo de Ataque + impressão A4</div>
+      </div>
+      <div class="gastro-icons no-print" aria-hidden="true">
+        <span>🍴</span><span>🥄</span><span>🔪</span><span>🥣</span><span>🍰</span>
+      </div>
     </div>
-    <div class="gastro-icons no-print" aria-hidden="true">
-      <span>🍴</span><span>🥄</span><span>🔪</span><span>🥣</span><span>🧁</span>
-    </div>
+
+    <section class="card">
+      <h2>Identificação</h2>
+      <div class="grid3">
+        <label class="field">
+          <span>Nome do aluno</span>
+          <input id="alunoNome" type="text" placeholder="Seu nome" />
+        </label>
+        <label class="field">
+          <span>RA (opcional)</span>
+          <input id="alunoRA" type="text" placeholder="Ex: 10723408" />
+        </label>
+        <label class="field">
+          <span>Turma / Disciplina (opcional)</span>
+          <input id="alunoTurma" type="text" placeholder="Ex: Gastronomia - Cozinha X" />
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Dados da receita</h2>
+      <div class="grid3">
+        <label class="field">
+          <span>Nome da receita</span>
+          <input id="receitaNome" type="text" placeholder="Ex: Tacacá" />
+        </label>
+        <label class="field">
+          <span>Rendimento (porções)</span>
+          <input id="rendimento" type="text" placeholder="Ex: 10" />
+        </label>
+        <label class="field">
+          <span>Margem desejada (%)</span>
+          <input id="margem" type="text" placeholder="Ex: 30" />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Modo de preparo</span>
+        <textarea id="modoPreparo" rows="5" placeholder="Escreva o passo a passo..."></textarea>
+      </label>
+    </section>
+
+    <section class="card">
+      <div class="row-between">
+        <h2>Ingredientes</h2>
+        <div class="row-gap no-print">
+          <button id="btnAddIng" type="button">Adicionar ingrediente</button>
+          <button id="btnLimparIng" type="button" class="secondary">Limpar ingredientes</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="tIngredientes">
+          <thead>
+            <tr>
+              <th style="width:40%">Ingrediente</th>
+              <th style="width:12%">Un</th>
+              <th style="width:12%">Qtd</th>
+              <th style="width:18%">Preço base</th>
+              <th style="width:18%">Custo</th>
+              <th class="no-print" style="width:1%">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="ingBody">
+            <!-- linhas JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="totals">
+        <div><strong>Custo total:</strong> <span id="custoTotal">R$ 0,00</span></div>
+        <div><strong>Custo por porção:</strong> <span id="custoPorcao">R$ 0,00</span></div>
+        <div><strong>Preço sugerido (com margem):</strong> <span id="precoSugerido">R$ 0,00</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row-between">
+        <h2>Lista consolidada (somada)</h2>
+        <div class="row-gap no-print">
+          <button id="btnGerarLista" type="button" class="secondary">Atualizar lista</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="tConsolidada">
+          <thead>
+            <tr>
+              <th style="width:55%">Ingrediente</th>
+              <th style="width:15%">Un</th>
+              <th style="width:15%">Qtd total</th>
+              <th style="width:15%">Custo total</th>
+            </tr>
+          </thead>
+          <tbody id="consBody">
+            <!-- linhas JS -->
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">Agrupa por <strong>Ingrediente + Unidade</strong>. Se o mesmo ingrediente aparecer em unidades diferentes, ele aparece em linhas separadas.</p>
+    </section>
+
+    <section class="card">
+      <div class="row-between">
+        <h2>Modo de Ataque (ordem de execução)</h2>
+        <div class="row-gap no-print">
+          <button id="btnAddEtapa" type="button">Adicionar etapa</button>
+          <button id="btnLimparAtaque" type="button" class="secondary">Limpar modo de ataque</button>
+        </div>
+      </div>
+
+      <ol id="listaAtaque" class="lista-ataque">
+        <!-- itens JS -->
+      </ol>
+      <p class="muted">Sem limite de etapas. Você adiciona quantas quiser.</p>
+    </section>
+
+    <section class="card no-print">
+      <div class="row-gap">
+        <button id="btnImprimir" type="button" class="primary">Imprimir (A4) / Salvar em PDF</button>
+      </div>
+      <p class="muted">
+        Dica: no Chrome/Edge, clique em <strong>Imprimir</strong> → Destino: <strong>Salvar em PDF</strong>.
+      </p>
+    </section>
   </div>
 
-  <!-- ✅ DADOS DO ALUNO -->
-  <div class="card">
-    <h3>Identificação</h3>
-    <div class="row">
-      <div class="col">
-        <label>Nome do aluno</label>
-        <input id="nomeAluno" placeholder="Ex.: Fernanda Arantes" />
-      </div>
-      <div class="col">
-        <label>RA (opcional)</label>
-        <input id="raAluno" placeholder="Ex.: 12345678" />
-      </div>
-      <div class="col">
-        <label>Turma / Disciplina (opcional)</label>
-        <input id="turmaAluno" placeholder="Ex.: Gastronomia - Cozinha X" />
-      </div>
-    </div>
-    <div class="muted">Esses dados aparecem na impressão.</div>
-  </div>
-
-  <!-- DADOS DA RECEITA -->
-  <div class="card">
-    <h3>Dados da receita</h3>
-    <div class="row">
-      <div class="col">
-        <label>Nome da receita</label>
-        <input id="nomeReceita" placeholder="Ex.: Sorvete probiótico (Cremaê)" />
-      </div>
-      <div class="col">
-        <label>Rendimento (porções)</label>
-        <input id="rendimento" type="number" min="1" value="10" />
-      </div>
-      <div class="col">
-        <label>Margem desejada (%)</label>
-        <input id="margem" type="number" min="0" value="60" />
-      </div>
-    </div>
-
-    <div style="margin-top:10px;">
-      <label>Modo de preparo</label>
-      <textarea id="modoPreparo" placeholder="Escreva o passo a passo..."></textarea>
-    </div>
-  </div>
-
-  <!-- ✅ INGREDIENTES PRIMEIRO (IMPRIME) -->
-  <div class="card">
-    <h3>Ingredientes</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Ingrediente</th>
-          <th>Un</th>
-          <th class="right">Qtd</th>
-          <th class="right">Preço base</th>
-          <th class="right">Custo</th>
-          <th class="right no-print">Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-
-    <div style="margin-top:12px;" class="row">
-      <div class="col card kpi-box" style="margin:0;">
-        <div class="muted">Custo total</div>
-        <div class="kpi" id="custoTotal">R$ 0,00</div>
-      </div>
-      <div class="col card kpi-box" style="margin:0;">
-        <div class="muted">Custo por porção</div>
-        <div class="kpi" id="custoPorcao">R$ 0,00</div>
-      </div>
-      <div class="col card kpi-box" style="margin:0;">
-        <div class="muted">Preço sugerido (com margem)</div>
-        <div class="kpi" id="precoSugerido">R$ 0,00</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODO DE ATAQUE -->
-  <div class="card">
-    <h3>Modo de Ataque (ordem de execução por receita)</h3>
-    <div class="muted no-print">
-      Clique nos <b>títulos</b> para renomear. As células crescem conforme você escreve. Use os botões para mais etapas.
-    </div>
-
-    <div class="toolbar no-print">
-      <button class="btn2" id="addEtapaBtn">Adicionar etapa</button>
-      <button class="btn2" id="remEtapaBtn">Remover última etapa</button>
-      <button class="btn2" id="clearAtaqueBtn">Limpar modo de ataque</button>
-      <button class="btn" id="printBtn">Imprimir (A4)</button>
-    </div>
-
-    <div style="margin-top:10px; overflow:auto;">
-      <table class="modo-ataque" id="modoAtaqueTable">
-        <thead>
-          <tr>
-            <th>Etapa</th>
-            <th class="recipe-head" contenteditable="true">Receita 1</th>
-            <th class="recipe-head" contenteditable="true">Receita 2</th>
-            <th class="recipe-head" contenteditable="true">Receita 3</th>
-            <th class="recipe-head" contenteditable="true">Receita 4</th>
-            <th class="recipe-head" contenteditable="true">Receita 5</th>
-          </tr>
-        </thead>
-        <tbody id="modoAtaqueBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ✅ ÚNICO FORM DE ADICIONAR (NÃO IMPRIME) -->
-  <div class="card no-print">
-    <h3>Adicionar ingrediente na receita</h3>
-    <div class="row">
-      <div class="col">
-        <label>Ingrediente</label>
-        <input id="ingNome" placeholder="Ex.: Leite de kefir" />
-      </div>
-      <div class="col">
-        <label>Unidade (g / ml / un)</label>
-        <select id="ingUn">
-          <option value="g">g</option>
-          <option value="ml">ml</option>
-          <option value="un">un</option>
-        </select>
-      </div>
-      <div class="col">
-        <label>Quantidade</label>
-        <input id="ingQtd" type="number" min="0" step="0.01" placeholder="Ex.: 600" />
-      </div>
-      <div class="col">
-        <label>Preço por kg/L/un (R$) (opcional)</label>
-        <input id="ingPrecoBase" type="number" min="0" step="0.01" placeholder="Ex.: 25.00" />
-        <div class="muted">Você pode deixar em branco. Se unidade for g/ml, o preço é por kg/L. Se for un, por unidade.</div>
-      </div>
-    </div>
-
-    <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-      <button class="btn" id="addBtn">Adicionar</button>
-      <button class="btn2" id="saveBtn">Salvar receita</button>
-      <button class="btn2" id="loadBtn">Carregar última salva</button>
-      <button class="btn2" id="clearBtn">Limpar tudo</button>
-      <button class="btn" id="pdfBtn">Baixar PDF</button>
-    </div>
-    <div id="msg" class="muted" style="margin-top:10px;"></div>
+  <!-- PRINT VIEW (só para impressão/PDF) -->
+  <div id="printView">
+    <!-- preenchido por JS -->
   </div>
 
 <script>
-  const state = { itens: [] };
+(function () {
+  // ---------- helpers ----------
   const $ = (id) => document.getElementById(id);
 
-  function money(n) {
-    return (n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  function normalizeText(s) {
+    return (s || "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .replace(/\s+/g, " ");
   }
 
-  function calcItemCost(item) {
-    const qtd = Number(item.qtd) || 0;
-    const raw = item.precoBase;
-    const preco = (raw === '' || raw === null || raw === undefined) ? NaN : Number(raw);
-    if (!isFinite(preco) || preco <= 0) return 0;
-    if (item.un === 'g' || item.un === 'ml') return qtd * (preco / 1000);
-    return qtd * preco;
+  function toNumberBR(value) {
+    if (value == null) return 0;
+    const s = value.toString().trim().replace(/\./g, "").replace(",", ".");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : 0;
   }
 
-  function msg(t, isErr=false) {
-    $('msg').innerHTML = isErr ? `<span class="danger">${t}</span>` : t;
+  function formatBR(n, decimals = 3) {
+    const fixed = n.toFixed(decimals);
+    const cleaned = fixed.replace(/\.?0+$/, "");
+    return cleaned.replace(".", ",");
   }
 
-  // ===== MODO DE ATAQUE =====
-  function readAtaqueHeaders() {
-    const ths = document.querySelectorAll('#modoAtaqueTable thead th.recipe-head');
-    return [...ths].map((th, i) => (th.innerText || '').trim() || `Receita ${i+1}`);
+  function moneyBR(n) {
+    const v = Number.isFinite(n) ? n : 0;
+    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
-  function applyAtaqueHeaders(headers) {
-    const ths = document.querySelectorAll('#modoAtaqueTable thead th.recipe-head');
-    const safe = Array.isArray(headers) ? headers : [];
-    [...ths].forEach((th, i) => {
-      th.innerText = (safe[i] && String(safe[i]).trim()) ? String(safe[i]).trim() : `Receita ${i+1}`;
-    });
-  }
+  // ---------- state ----------
+  const ingBody = $("ingBody");
+  const consBody = $("consBody");
+  const listaAtaque = $("listaAtaque");
 
-  function buildRow(etapaNum, receitas) {
-    const r = Array.isArray(receitas) ? receitas : ['', '', '', '', ''];
-    const tr = document.createElement('tr');
+  // ---------- ingredients ----------
+  function addIngredienteRow(data = {}) {
+    const tr = document.createElement("tr");
+
     tr.innerHTML = `
-      <td>${etapaNum}</td>
-      <td class="editable" contenteditable="true"></td>
-      <td class="editable" contenteditable="true"></td>
-      <td class="editable" contenteditable="true"></td>
-      <td class="editable" contenteditable="true"></td>
-      <td class="editable" contenteditable="true"></td>
+      <td><input class="ingNome" type="text" placeholder="Ex: Açúcar refinado" value="${data.nome || ""}"></td>
+      <td>
+        <input class="ingUn" type="text" placeholder="g, ml, un" value="${data.un || ""}">
+      </td>
+      <td><input class="ingQtd" type="text" placeholder="0,000" value="${data.qtd || ""}"></td>
+      <td><input class="ingPreco" type="text" placeholder="R$ / un" value="${data.preco || ""}"></td>
+      <td class="cell-custo"><span class="custoLinha">R$ 0,00</span></td>
+      <td class="no-print"><button type="button" class="danger btnRem">remover</button></td>
     `;
-    const cells = tr.querySelectorAll('td.editable');
-    cells.forEach((c, idx) => c.innerText = r[idx] || '');
-    return tr;
+
+    tr.querySelector(".btnRem").addEventListener("click", () => {
+      tr.remove();
+      recalcAll();
+    });
+
+    // recalc on input
+    ["ingNome","ingUn","ingQtd","ingPreco"].forEach(cls => {
+      tr.querySelector("." + cls).addEventListener("input", recalcAll);
+    });
+
+    ingBody.appendChild(tr);
+    recalcAll();
   }
 
-  function renumerarEtapas() {
-    const rows = $('modoAtaqueBody').querySelectorAll('tr');
-    rows.forEach((tr, i) => tr.querySelector('td').innerText = String(i + 1));
-  }
-
-  function addNovaEtapa(receitas=['','','','','']) {
-    const body = $('modoAtaqueBody');
-    const etapaNum = body.querySelectorAll('tr').length + 1;
-    body.appendChild(buildRow(etapaNum, receitas));
-  }
-
-  function readModoAtaque() {
-    const rows = [...$('modoAtaqueBody').querySelectorAll('tr')];
-    return rows.map(r => {
-      const cells = [...r.querySelectorAll('td')];
-      return { etapa: cells[0].innerText.trim(), receitas: cells.slice(1).map(c => c.innerText) };
+  function getIngredientesRows() {
+    const rows = [...ingBody.querySelectorAll("tr")];
+    return rows.map((tr) => {
+      const nome = tr.querySelector(".ingNome").value;
+      const un = tr.querySelector(".ingUn").value;
+      const qtd = toNumberBR(tr.querySelector(".ingQtd").value);
+      const preco = toNumberBR(tr.querySelector(".ingPreco").value);
+      const custo = qtd * preco;
+      return { nome, un, qtd, preco, custo, tr };
     });
   }
 
-  function applyModoAtaque(data, minRows=5) {
-    const body = $('modoAtaqueBody');
-    body.innerHTML = '';
-    const safe = Array.isArray(data) ? data : [];
-    const count = Math.max(minRows, safe.length || 0);
-    for (let i = 0; i < count; i++) {
-      const receitas = safe[i]?.receitas || ['', '', '', '', ''];
-      body.appendChild(buildRow(i + 1, receitas));
+  function renderLinhaCustos(rows) {
+    rows.forEach(r => {
+      r.tr.querySelector(".custoLinha").textContent = moneyBR(r.custo);
+    });
+  }
+
+  // ---------- consolidated list ----------
+  function buildConsolidada(rows) {
+    const map = new Map(); // key -> item
+    for (const r of rows) {
+      const nomeRaw = (r.nome || "").trim();
+      const unRaw = (r.un || "").trim();
+
+      if (!nomeRaw) continue;
+      if (!r.qtd || r.qtd <= 0) continue; // sem qtd, não soma
+
+      const key = normalizeText(nomeRaw) + "||" + normalizeText(unRaw);
+      if (!map.has(key)) {
+        map.set(key, {
+          nome: nomeRaw.replace(/\s+/g, " ").trim(),
+          un: unRaw,
+          qtd: 0,
+          custo: 0
+        });
+      }
+      const item = map.get(key);
+      item.qtd += r.qtd;
+      // custo só soma se houver preço válido
+      if (r.preco && r.preco > 0) item.custo += r.custo;
+    }
+
+    // ordenar por nome
+    const list = [...map.values()].sort((a,b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    return list;
+  }
+
+  function renderConsolidada(list) {
+    consBody.innerHTML = "";
+    if (list.length === 0) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="4" class="muted">Sem itens para consolidar ainda.</td>`;
+      consBody.appendChild(tr);
+      return;
+    }
+
+    for (const it of list) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHTML(it.nome)}</td>
+        <td>${escapeHTML(it.un || "")}</td>
+        <td>${formatBR(it.qtd, 3)}</td>
+        <td>${it.custo > 0 ? moneyBR(it.custo) : "—"}</td>
+      `;
+      consBody.appendChild(tr);
     }
   }
 
-  // ===== INGREDIENTES =====
-  function render() {
-    const tbody = $('tbody');
-    tbody.innerHTML = '';
-
-    let total = 0;
-    state.itens.forEach((it, idx) => {
-      const c = calcItemCost(it);
-      total += c;
-
-      const precoMostra = (it.precoBase === '' || it.precoBase === null || it.precoBase === undefined)
-        ? '—'
-        : money(Number(it.precoBase));
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${it.nome}</td>
-        <td>${it.un}</td>
-        <td class="right">${Number(it.qtd || 0).toLocaleString('pt-BR')}</td>
-        <td class="right">${precoMostra}</td>
-        <td class="right"><b>${money(c)}</b></td>
-        <td class="right no-print"><button class="btn2" onclick="removeItem(${idx})">Remover</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    const rendimento = Math.max(1, Number($('rendimento').value) || 1);
-    const custoPorcao = total / rendimento;
-
-    const margem = Math.max(0, Math.min(99, Number($('margem').value) || 0));
-    const fator = 1 - (margem / 100);
-    const precoSug = fator > 0 ? (total / fator) : 0;
-    const precoPorcao = precoSug / rendimento;
-
-    $('custoTotal').textContent = money(total);
-    $('custoPorcao').textContent = money(custoPorcao) + ` (≈ ${money(custoPorcao)} / porção)`;
-    $('precoSugerido').textContent = money(precoSug) + ` (≈ ${money(precoPorcao)} / porção)`;
+  function escapeHTML(s) {
+    return (s || "").toString()
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
   }
 
-  window.removeItem = function(idx) {
-    state.itens.splice(idx, 1);
-    render();
-  };
+  // ---------- totals ----------
+  function recalcTotais(rows) {
+    const custoTotal = rows.reduce((acc, r) => acc + (Number.isFinite(r.custo) ? r.custo : 0), 0);
+    const rendimento = Math.max(0, toNumberBR($("rendimento").value));
+    const margem = Math.max(0, toNumberBR($("margem").value));
 
-  $('addBtn')?.addEventListener('click', () => {
-    const nome = $('ingNome').value.trim();
-    const un = $('ingUn').value;
-    const qtd = Number($('ingQtd').value);
-    const precoStr = $('ingPrecoBase').value.trim();
+    const custoPorcao = (rendimento > 0) ? (custoTotal / rendimento) : 0;
+    const precoSugerido = (margem > 0)
+      ? (custoPorcao * (1 + (margem / 100)))
+      : custoPorcao;
 
-    if (!nome) return msg('Coloque o nome do ingrediente.', true);
-    if (!qtd || qtd <= 0) return msg('Quantidade precisa ser maior que 0.', true);
+    $("custoTotal").textContent = moneyBR(custoTotal);
+    $("custoPorcao").textContent = moneyBR(custoPorcao);
+    $("precoSugerido").textContent = moneyBR(precoSugerido);
+  }
 
-    state.itens.push({ nome, un, qtd, precoBase: precoStr });
+  // ---------- modo de ataque ----------
+  function addEtapa(text = "") {
+    const li = document.createElement("li");
+    li.className = "ataque-item";
+    li.innerHTML = `
+      <input class="ataqueTexto" type="text" placeholder="Descreva a etapa..." value="${escapeHTML(text)}">
+      <button type="button" class="danger btnRemEtapa no-print">remover</button>
+    `;
+    li.querySelector(".btnRemEtapa").addEventListener("click", () => {
+      li.remove();
+    });
+    listaAtaque.appendChild(li);
+  }
 
-    $('ingNome').value = '';
-    $('ingQtd').value = '';
-    $('ingPrecoBase').value = '';
-    msg(precoStr ? 'Ingrediente adicionado ✅' : 'Ingrediente adicionado (sem preço) ✅');
-    render();
+  function getEtapas() {
+    return [...listaAtaque.querySelectorAll(".ataqueTexto")]
+      .map(i => (i.value || "").trim())
+      .filter(Boolean);
+  }
+
+  // ---------- print view (só com preenchido) ----------
+  function buildPrintView(consolidadaList, rows) {
+    const nomeAluno = $("alunoNome").value.trim();
+    const ra = $("alunoRA").value.trim();
+    const turma = $("alunoTurma").value.trim();
+    const receita = $("receitaNome").value.trim();
+    const rendimento = $("rendimento").value.trim();
+    const margem = $("margem").value.trim();
+    const modo = $("modoPreparo").value.trim();
+
+    const custoTotalTxt = $("custoTotal").textContent;
+    const custoPorcaoTxt = $("custoPorcao").textContent;
+    const precoSugTxt = $("precoSugerido").textContent;
+
+    const etapas = getEtapas();
+
+    // ingredientes da receita (apenas preenchidos)
+    const ingValidos = rows.filter(r => (r.nome || "").trim() && r.qtd > 0);
+
+    const linhasId = [];
+    if (nomeAluno) linhasId.push(`<div><strong>Aluno:</strong> ${escapeHTML(nomeAluno)}</div>`);
+    if (ra) linhasId.push(`<div><strong>RA:</strong> ${escapeHTML(ra)}</div>`);
+    if (turma) linhasId.push(`<div><strong>Turma/Disciplina:</strong> ${escapeHTML(turma)}</div>`);
+
+    const linhasRec = [];
+    if (receita) linhasRec.push(`<div><strong>Receita:</strong> ${escapeHTML(receita)}</div>`);
+    if (rendimento) linhasRec.push(`<div><strong>Rendimento:</strong> ${escapeHTML(rendimento)} porções</div>`);
+    if (margem) linhasRec.push(`<div><strong>Margem:</strong> ${escapeHTML(margem)}%</div>`);
+
+    // custos: só aparece se tiver ao menos 1 ingrediente com custo
+    const temCusto = rows.some(r => r.custo && r.custo > 0);
+    const blocoCustos = temCusto ? `
+      <div class="print-box">
+        <h3>Custos</h3>
+        <div class="print-grid3">
+          <div><strong>Custo total:</strong> ${escapeHTML(custoTotalTxt)}</div>
+          <div><strong>Custo por porção:</strong> ${escapeHTML(custoPorcaoTxt)}</div>
+          <div><strong>Preço sugerido:</strong> ${escapeHTML(precoSugTxt)}</div>
+        </div>
+      </div>
+    ` : "";
+
+    const tabelaIng = ingValidos.length ? `
+      <div class="print-box">
+        <h3>Ingredientes</h3>
+        <table class="print-table">
+          <thead>
+            <tr>
+              <th>Ingrediente</th><th>Un</th><th>Qtd</th>${temCusto ? "<th>Custo</th>" : ""}
+            </tr>
+          </thead>
+          <tbody>
+            ${ingValidos.map(r => `
+              <tr>
+                <td>${escapeHTML(r.nome)}</td>
+                <td>${escapeHTML((r.un || "").trim())}</td>
+                <td>${formatBR(r.qtd, 3)}</td>
+                ${temCusto ? `<td>${(r.custo && r.custo>0) ? moneyBR(r.custo) : "—"}</td>` : ""}
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    ` : "";
+
+    const tabelaCons = consolidadaList.length ? `
+      <div class="print-box">
+        <h3>Lista consolidada (somada)</h3>
+        <table class="print-table">
+          <thead>
+            <tr><th>Ingrediente</th><th>Un</th><th>Qtd total</th>${temCusto ? "<th>Custo total</th>" : ""}</tr>
+          </thead>
+          <tbody>
+            ${consolidadaList.map(it => `
+              <tr>
+                <td>${escapeHTML(it.nome)}</td>
+                <td>${escapeHTML(it.un || "")}</td>
+                <td>${formatBR(it.qtd, 3)}</td>
+                ${temCusto ? `<td>${it.custo > 0 ? moneyBR(it.custo) : "—"}</td>` : ""}
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    ` : "";
+
+    const blocoModo = modo ? `
+      <div class="print-box">
+        <h3>Modo de preparo</h3>
+        <div class="print-text">${escapeHTML(modo).replaceAll("\n", "<br>")}</div>
+      </div>
+    ` : "";
+
+    const blocoAtaque = etapas.length ? `
+      <div class="print-box">
+        <h3>Modo de ataque</h3>
+        <ol class="print-ol">
+          ${etapas.map(e => `<li>${escapeHTML(e)}</li>`).join("")}
+        </ol>
+      </div>
+    ` : "";
+
+    const html = `
+      <div class="print-page">
+        <div class="print-title">Ficha Técnica</div>
+
+        ${(linhasId.length || linhasRec.length) ? `
+          <div class="print-box">
+            ${linhasId.length ? `<h3>Identificação</h3>${linhasId.join("")}` : ""}
+            ${linhasRec.length ? `<h3 style="margin-top:10px">Dados</h3>${linhasRec.join("")}` : ""}
+          </div>
+        ` : ""}
+
+        ${blocoCustos}
+        ${tabelaIng}
+        ${tabelaCons}
+        ${blocoModo}
+        ${blocoAtaque}
+      </div>
+    `;
+
+    $("printView").innerHTML = html;
+  }
+
+  // ---------- master recalc ----------
+  function recalcAll() {
+    const rows = getIngredientesRows();
+    renderLinhaCustos(rows);
+    recalcTotais(rows);
+
+    const cons = buildConsolidada(rows);
+    renderConsolidada(cons);
+  }
+
+  // ---------- events ----------
+  $("btnAddIng").addEventListener("click", () => addIngredienteRow());
+  $("btnLimparIng").addEventListener("click", () => {
+    ingBody.innerHTML = "";
+    recalcAll();
+  });
+  $("btnGerarLista").addEventListener("click", recalcAll);
+
+  $("btnAddEtapa").addEventListener("click", () => addEtapa());
+  $("btnLimparAtaque").addEventListener("click", () => {
+    listaAtaque.innerHTML = "";
   });
 
-  $('saveBtn')?.addEventListener('click', () => {
-    const payload = {
-      nomeAluno: $('nomeAluno')?.value || '',
-      raAluno: $('raAluno')?.value || '',
-      turmaAluno: $('turmaAluno')?.value || '',
-
-      nomeReceita: $('nomeReceita').value,
-      rendimento: $('rendimento').value,
-      margem: $('margem').value,
-      modoPreparo: $('modoPreparo').value,
-
-      itens: state.itens,
-      modoAtaqueHeaders: readAtaqueHeaders(),
-      modoAtaque: readModoAtaque()
-    };
-    localStorage.setItem('ficha_mvp_ultima', JSON.stringify(payload));
-    msg('Salvo no navegador ✅');
+  ["alunoNome","alunoRA","alunoTurma","receitaNome","rendimento","margem","modoPreparo"].forEach(id => {
+    $(id).addEventListener("input", recalcAll);
   });
 
-  $('loadBtn')?.addEventListener('click', () => {
-    const raw = localStorage.getItem('ficha_mvp_ultima');
-    if (!raw) return msg('Nada salvo ainda.', true);
-    const payload = JSON.parse(raw);
-
-    $('nomeAluno').value = payload.nomeAluno || '';
-    $('raAluno').value = payload.raAluno || '';
-    $('turmaAluno').value = payload.turmaAluno || '';
-
-    $('nomeReceita').value = payload.nomeReceita || '';
-    $('rendimento').value = payload.rendimento || 1;
-    $('margem').value = payload.margem || 0;
-    $('modoPreparo').value = payload.modoPreparo || '';
-
-    state.itens = payload.itens || [];
-    applyAtaqueHeaders(payload.modoAtaqueHeaders || []);
-    applyModoAtaque(payload.modoAtaque || [], 5);
-
-    msg('Carregado ✅');
-    render();
+  $("btnImprimir").addEventListener("click", () => {
+    // monta impressão limpa antes de abrir o print
+    const rows = getIngredientesRows();
+    const cons = buildConsolidada(rows);
+    buildPrintView(cons, rows);
+    window.print();
   });
 
-  $('clearBtn')?.addEventListener('click', () => {
-    state.itens = [];
-    $('nomeAluno').value = '';
-    $('raAluno').value = '';
-    $('turmaAluno').value = '';
+  // ---------- init ----------
+  addIngredienteRow();
+  addEtapa();
+  recalcAll();
 
-    $('nomeReceita').value = '';
-    $('modoPreparo').value = '';
-    $('rendimento').value = 10;
-    $('margem').value = 60;
-
-    applyAtaqueHeaders([]);
-    applyModoAtaque([], 5);
-
-    msg('Limpo ✅');
-    render();
-  });
-
-  $('addEtapaBtn').addEventListener('click', () => addNovaEtapa());
-  $('remEtapaBtn').addEventListener('click', () => {
-    const body = $('modoAtaqueBody');
-    const rows = body.querySelectorAll('tr');
-    if (rows.length <= 1) return;
-    body.removeChild(rows[rows.length - 1]);
-    renumerarEtapas();
-  });
-  $('clearAtaqueBtn').addEventListener('click', () => {
-    applyAtaqueHeaders([]);
-    applyModoAtaque([], 5);
-  });
-
-  $('printBtn').addEventListener('click', () => window.print());
-
-  applyModoAtaque([], 5);
-  render();
+})();
 </script>
+
 </body>
 </html>
