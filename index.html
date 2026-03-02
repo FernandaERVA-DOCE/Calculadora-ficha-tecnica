@@ -72,7 +72,7 @@
       </div>
 
       <div class="table-wrap">
-        <table id="tIngredientes">
+        <table>
           <thead>
             <tr>
               <th style="width:40%">Ingrediente</th>
@@ -83,9 +83,7 @@
               <th class="no-print" style="width:1%">Ações</th>
             </tr>
           </thead>
-          <tbody id="ingBody">
-            <!-- linhas JS -->
-          </tbody>
+          <tbody id="ingBody"></tbody>
         </table>
       </div>
 
@@ -105,7 +103,7 @@
       </div>
 
       <div class="table-wrap">
-        <table id="tConsolidada">
+        <table>
           <thead>
             <tr>
               <th style="width:55%">Ingrediente</th>
@@ -114,55 +112,60 @@
               <th style="width:15%">Custo total</th>
             </tr>
           </thead>
-          <tbody id="consBody">
-            <!-- linhas JS -->
-          </tbody>
+          <tbody id="consBody"></tbody>
         </table>
       </div>
-      <p class="muted">Agrupa por <strong>Ingrediente + Unidade</strong>. Se o mesmo ingrediente aparecer em unidades diferentes, ele aparece em linhas separadas.</p>
+
+      <p class="muted">
+        Agrupa por <strong>Ingrediente + Unidade</strong>. Se o mesmo ingrediente aparecer em unidades diferentes, ele aparece em linhas separadas.
+      </p>
     </section>
 
+    <!-- MODO DE ATAQUE EM TABELA -->
     <section class="card">
       <div class="row-between">
         <h2>Modo de Ataque (ordem de execução)</h2>
         <div class="row-gap no-print">
           <button id="btnAddEtapa" type="button">Adicionar etapa</button>
+          <button id="btnAddReceita" type="button">Adicionar receita</button>
           <button id="btnLimparAtaque" type="button" class="secondary">Limpar modo de ataque</button>
         </div>
       </div>
 
-      <ol id="listaAtaque" class="lista-ataque">
-        <!-- itens JS -->
-      </ol>
-      <p class="muted">Sem limite de etapas. Você adiciona quantas quiser.</p>
+      <div class="table-wrap ataque-table-wrap">
+        <table id="tAtaque">
+          <thead id="ataqueHead"></thead>
+          <tbody id="ataqueBody"></tbody>
+        </table>
+      </div>
+
+      <p class="muted">
+        A coluna <strong>Etapa</strong> é automática. Você pode <strong>renomear</strong> as receitas e adicionar/remover colunas e linhas.
+      </p>
     </section>
 
     <section class="card no-print">
       <div class="row-gap">
         <button id="btnImprimir" type="button" class="primary">Imprimir (A4) / Salvar em PDF</button>
       </div>
-      <p class="muted">
-        Dica: no Chrome/Edge, clique em <strong>Imprimir</strong> → Destino: <strong>Salvar em PDF</strong>.
-      </p>
+      <p class="muted">No Chrome/Edge: <strong>Imprimir</strong> → Destino: <strong>Salvar em PDF</strong>.</p>
     </section>
   </div>
 
   <!-- PRINT VIEW (só para impressão/PDF) -->
-  <div id="printView">
-    <!-- preenchido por JS -->
-  </div>
+  <div id="printView"></div>
 
 <script>
 (function () {
-  // ---------- helpers ----------
   const $ = (id) => document.getElementById(id);
 
+  // ===== helpers =====
   function normalizeText(s) {
     return (s || "")
       .toString()
       .trim()
       .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, " ");
   }
 
@@ -184,32 +187,37 @@
     return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
-  // ---------- state ----------
+  function escapeHTML(s) {
+    return (s || "").toString()
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // =========================
+  // INGREDIENTES
+  // =========================
   const ingBody = $("ingBody");
   const consBody = $("consBody");
-  const listaAtaque = $("listaAtaque");
 
-  // ---------- ingredients ----------
   function addIngredienteRow(data = {}) {
     const tr = document.createElement("tr");
-
     tr.innerHTML = `
-      <td><input class="ingNome" type="text" placeholder="Ex: Açúcar refinado" value="${data.nome || ""}"></td>
-      <td>
-        <input class="ingUn" type="text" placeholder="g, ml, un" value="${data.un || ""}">
-      </td>
-      <td><input class="ingQtd" type="text" placeholder="0,000" value="${data.qtd || ""}"></td>
-      <td><input class="ingPreco" type="text" placeholder="R$ / un" value="${data.preco || ""}"></td>
+      <td><input class="ingNome" type="text" placeholder="Ex: Açúcar refinado" value="${escapeHTML(data.nome || "")}"></td>
+      <td><input class="ingUn" type="text" placeholder="g, ml, un" value="${escapeHTML(data.un || "")}"></td>
+      <td><input class="ingQtd" type="text" placeholder="0,000" value="${escapeHTML(data.qtd || "")}"></td>
+      <td><input class="ingPreco" type="text" placeholder="R$ / un" value="${escapeHTML(data.preco || "")}"></td>
       <td class="cell-custo"><span class="custoLinha">R$ 0,00</span></td>
-      <td class="no-print"><button type="button" class="danger btnRem">remover</button></td>
+      <td class="no-print"><button type="button" class="danger btnRemIng">remover</button></td>
     `;
 
-    tr.querySelector(".btnRem").addEventListener("click", () => {
+    tr.querySelector(".btnRemIng").addEventListener("click", () => {
       tr.remove();
       recalcAll();
     });
 
-    // recalc on input
     ["ingNome","ingUn","ingQtd","ingPreco"].forEach(cls => {
       tr.querySelector("." + cls).addEventListener("input", recalcAll);
     });
@@ -236,45 +244,31 @@
     });
   }
 
-  // ---------- consolidated list ----------
   function buildConsolidada(rows) {
-    const map = new Map(); // key -> item
+    const map = new Map();
     for (const r of rows) {
       const nomeRaw = (r.nome || "").trim();
       const unRaw = (r.un || "").trim();
-
       if (!nomeRaw) continue;
-      if (!r.qtd || r.qtd <= 0) continue; // sem qtd, não soma
+      if (!r.qtd || r.qtd <= 0) continue;
 
       const key = normalizeText(nomeRaw) + "||" + normalizeText(unRaw);
       if (!map.has(key)) {
-        map.set(key, {
-          nome: nomeRaw.replace(/\s+/g, " ").trim(),
-          un: unRaw,
-          qtd: 0,
-          custo: 0
-        });
+        map.set(key, { nome: nomeRaw.replace(/\s+/g, " ").trim(), un: unRaw, qtd: 0, custo: 0 });
       }
-      const item = map.get(key);
-      item.qtd += r.qtd;
-      // custo só soma se houver preço válido
-      if (r.preco && r.preco > 0) item.custo += r.custo;
+      const it = map.get(key);
+      it.qtd += r.qtd;
+      if (r.preco && r.preco > 0) it.custo += r.custo;
     }
-
-    // ordenar por nome
-    const list = [...map.values()].sort((a,b) => a.nome.localeCompare(b.nome, "pt-BR"));
-    return list;
+    return [...map.values()].sort((a,b) => a.nome.localeCompare(b.nome, "pt-BR"));
   }
 
   function renderConsolidada(list) {
     consBody.innerHTML = "";
-    if (list.length === 0) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="4" class="muted">Sem itens para consolidar ainda.</td>`;
-      consBody.appendChild(tr);
+    if (!list.length) {
+      consBody.innerHTML = `<tr><td colspan="4" class="muted">Sem itens para consolidar ainda.</td></tr>`;
       return;
     }
-
     for (const it of list) {
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -287,52 +281,196 @@
     }
   }
 
-  function escapeHTML(s) {
-    return (s || "").toString()
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  // ---------- totals ----------
   function recalcTotais(rows) {
     const custoTotal = rows.reduce((acc, r) => acc + (Number.isFinite(r.custo) ? r.custo : 0), 0);
     const rendimento = Math.max(0, toNumberBR($("rendimento").value));
     const margem = Math.max(0, toNumberBR($("margem").value));
 
-    const custoPorcao = (rendimento > 0) ? (custoTotal / rendimento) : 0;
-    const precoSugerido = (margem > 0)
-      ? (custoPorcao * (1 + (margem / 100)))
-      : custoPorcao;
+    const custoPorcao = rendimento > 0 ? (custoTotal / rendimento) : 0;
+    const precoSugerido = margem > 0 ? (custoPorcao * (1 + (margem / 100))) : custoPorcao;
 
     $("custoTotal").textContent = moneyBR(custoTotal);
     $("custoPorcao").textContent = moneyBR(custoPorcao);
     $("precoSugerido").textContent = moneyBR(precoSugerido);
   }
 
-  // ---------- modo de ataque ----------
-  function addEtapa(text = "") {
-    const li = document.createElement("li");
-    li.className = "ataque-item";
-    li.innerHTML = `
-      <input class="ataqueTexto" type="text" placeholder="Descreva a etapa..." value="${escapeHTML(text)}">
-      <button type="button" class="danger btnRemEtapa no-print">remover</button>
-    `;
-    li.querySelector(".btnRemEtapa").addEventListener("click", () => {
-      li.remove();
+  // =========================
+  // MODO DE ATAQUE (TABELA)
+  // =========================
+  const ataqueHead = $("ataqueHead");
+  const ataqueBody = $("ataqueBody");
+
+  // estado simples
+  let ataqueReceitas = ["Receita 1", "Receita 2", "Receita 3"];
+  let ataqueEtapas = 5;
+  // dados: [row][col] (col 0..n-1 para receitas)
+  let ataqueCells = Array.from({length: ataqueEtapas}, () => ataqueReceitas.map(() => ""));
+
+  function ensureMatrix() {
+    // ajusta linhas
+    if (ataqueCells.length < ataqueEtapas) {
+      while (ataqueCells.length < ataqueEtapas) {
+        ataqueCells.push(ataqueReceitas.map(() => ""));
+      }
+    } else if (ataqueCells.length > ataqueEtapas) {
+      ataqueCells = ataqueCells.slice(0, ataqueEtapas);
+    }
+
+    // ajusta colunas
+    ataqueCells = ataqueCells.map(row => {
+      if (row.length < ataqueReceitas.length) {
+        const add = Array.from({length: ataqueReceitas.length - row.length}, () => "");
+        return row.concat(add);
+      }
+      if (row.length > ataqueReceitas.length) return row.slice(0, ataqueReceitas.length);
+      return row;
     });
-    listaAtaque.appendChild(li);
   }
 
-  function getEtapas() {
-    return [...listaAtaque.querySelectorAll(".ataqueTexto")]
-      .map(i => (i.value || "").trim())
-      .filter(Boolean);
+  function renderAtaqueTable() {
+    ensureMatrix();
+
+    // header
+    ataqueHead.innerHTML = "";
+    const trH = document.createElement("tr");
+
+    // Etapa
+    const thEtapa = document.createElement("th");
+    thEtapa.textContent = "Etapa";
+    thEtapa.className = "col-etapa";
+    trH.appendChild(thEtapa);
+
+    // Receitas (renomeáveis + remover)
+    ataqueReceitas.forEach((nome, idx) => {
+      const th = document.createElement("th");
+      th.className = "col-receita";
+      th.innerHTML = `
+        <div class="th-receita">
+          <input class="ataque-col-title" type="text" value="${escapeHTML(nome)}" aria-label="Nome da receita">
+          <button type="button" class="danger btnRemCol no-print" title="Remover receita">✕</button>
+        </div>
+      `;
+      const input = th.querySelector(".ataque-col-title");
+      input.addEventListener("input", () => {
+        ataqueReceitas[idx] = input.value || "";
+      });
+
+      th.querySelector(".btnRemCol").addEventListener("click", () => {
+        // remove coluna idx
+        ataqueReceitas.splice(idx, 1);
+        ataqueCells = ataqueCells.map(row => {
+          row.splice(idx, 1);
+          return row;
+        });
+        // nunca deixa 0 colunas (pra não quebrar a tabela)
+        if (ataqueReceitas.length === 0) {
+          ataqueReceitas = ["Receita 1"];
+          ataqueCells = ataqueCells.map(() => [""]);
+        }
+        renderAtaqueTable();
+      });
+
+      trH.appendChild(th);
+    });
+
+    // coluna de ações (remover etapa)
+    const thA = document.createElement("th");
+    thA.className = "no-print col-acao";
+    thA.textContent = "Ações";
+    trH.appendChild(thA);
+
+    ataqueHead.appendChild(trH);
+
+    // body
+    ataqueBody.innerHTML = "";
+    for (let r = 0; r < ataqueEtapas; r++) {
+      const tr = document.createElement("tr");
+
+      // etapa (número)
+      const tdEtapa = document.createElement("td");
+      tdEtapa.className = "col-etapa";
+      tdEtapa.textContent = String(r + 1);
+      tr.appendChild(tdEtapa);
+
+      // cells
+      for (let c = 0; c < ataqueReceitas.length; c++) {
+        const td = document.createElement("td");
+        td.innerHTML = `<input class="ataque-cell" type="text" placeholder="..." value="${escapeHTML(ataqueCells[r][c] || "")}">`;
+        const inp = td.querySelector(".ataque-cell");
+        inp.addEventListener("input", () => {
+          ataqueCells[r][c] = inp.value || "";
+        });
+        tr.appendChild(td);
+      }
+
+      // remove row
+      const tdA = document.createElement("td");
+      tdA.className = "no-print col-acao";
+      tdA.innerHTML = `<button type="button" class="danger btnRemRow">remover</button>`;
+      tdA.querySelector(".btnRemRow").addEventListener("click", () => {
+        ataqueCells.splice(r, 1);
+        ataqueEtapas = Math.max(1, ataqueEtapas - 1);
+        renderAtaqueTable();
+      });
+      tr.appendChild(tdA);
+
+      ataqueBody.appendChild(tr);
+    }
   }
 
-  // ---------- print view (só com preenchido) ----------
+  function addAtaqueEtapa() {
+    ataqueEtapas += 1;
+    ataqueCells.push(ataqueReceitas.map(() => ""));
+    renderAtaqueTable();
+  }
+
+  function addAtaqueReceita() {
+    ataqueReceitas.push(`Receita ${ataqueReceitas.length + 1}`);
+    ataqueCells = ataqueCells.map(row => row.concat([""]));
+    renderAtaqueTable();
+  }
+
+  function clearAtaque() {
+    ataqueReceitas = ["Receita 1", "Receita 2", "Receita 3"];
+    ataqueEtapas = 5;
+    ataqueCells = Array.from({length: ataqueEtapas}, () => ataqueReceitas.map(() => ""));
+    renderAtaqueTable();
+  }
+
+  function getAtaqueForPrint() {
+    // retorna apenas se tiver algo preenchido (ou nomes)
+    const colNames = ataqueReceitas.map(n => (n || "").trim()).filter(Boolean);
+    const hasAnyCell = ataqueCells.some(row => row.some(cell => (cell || "").trim()));
+    const hasAnyName = ataqueReceitas.some(n => (n || "").trim());
+    if (!hasAnyCell && !hasAnyName) return null;
+
+    // usa nomes completos (mesmo vazios, imprime como "Receita X" se vazio)
+    const safeNames = ataqueReceitas.map((n, i) => (n && n.trim()) ? n.trim() : `Receita ${i+1}`);
+
+    // linhas: sempre imprime as etapas, mas você pode preferir imprimir só até última preenchida
+    // aqui vou imprimir só até a última etapa que tenha algo em qualquer coluna
+    let last = -1;
+    for (let r = 0; r < ataqueCells.length; r++) {
+      if (ataqueCells[r].some(cell => (cell || "").trim())) last = r;
+    }
+    const limit = last >= 0 ? (last + 1) : 0;
+    if (limit === 0) {
+      // se nada preenchido, não imprime
+      return null;
+    }
+
+    return {
+      cols: safeNames,
+      rows: ataqueCells.slice(0, limit).map((row, idx) => ({
+        etapa: idx + 1,
+        cells: row.map(v => (v || "").trim())
+      }))
+    };
+  }
+
+  // =========================
+  // PRINT VIEW (limpo)
+  // =========================
   function buildPrintView(consolidadaList, rows) {
     const nomeAluno = $("alunoNome").value.trim();
     const ra = $("alunoRA").value.trim();
@@ -346,10 +484,8 @@
     const custoPorcaoTxt = $("custoPorcao").textContent;
     const precoSugTxt = $("precoSugerido").textContent;
 
-    const etapas = getEtapas();
-
-    // ingredientes da receita (apenas preenchidos)
     const ingValidos = rows.filter(r => (r.nome || "").trim() && r.qtd > 0);
+    const temCusto = rows.some(r => r.custo && r.custo > 0);
 
     const linhasId = [];
     if (nomeAluno) linhasId.push(`<div><strong>Aluno:</strong> ${escapeHTML(nomeAluno)}</div>`);
@@ -361,8 +497,6 @@
     if (rendimento) linhasRec.push(`<div><strong>Rendimento:</strong> ${escapeHTML(rendimento)} porções</div>`);
     if (margem) linhasRec.push(`<div><strong>Margem:</strong> ${escapeHTML(margem)}%</div>`);
 
-    // custos: só aparece se tiver ao menos 1 ingrediente com custo
-    const temCusto = rows.some(r => r.custo && r.custo > 0);
     const blocoCustos = temCusto ? `
       <div class="print-box">
         <h3>Custos</h3>
@@ -425,12 +559,28 @@
       </div>
     ` : "";
 
-    const blocoAtaque = etapas.length ? `
+    const ataque = getAtaqueForPrint();
+    const blocoAtaque = ataque ? `
       <div class="print-box">
-        <h3>Modo de ataque</h3>
-        <ol class="print-ol">
-          ${etapas.map(e => `<li>${escapeHTML(e)}</li>`).join("")}
-        </ol>
+        <h3>Modo de Ataque (ordem de execução)</h3>
+        <div class="print-ataque-wrap">
+          <table class="print-table print-ataque">
+            <thead>
+              <tr>
+                <th style="width:60px">Etapa</th>
+                ${ataque.cols.map(c => `<th>${escapeHTML(c)}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${ataque.rows.map(r => `
+                <tr>
+                  <td>${r.etapa}</td>
+                  ${r.cells.map(v => `<td>${escapeHTML(v)}</td>`).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
       </div>
     ` : "";
 
@@ -456,7 +606,9 @@
     $("printView").innerHTML = html;
   }
 
-  // ---------- master recalc ----------
+  // =========================
+  // RECALC
+  // =========================
   function recalcAll() {
     const rows = getIngredientesRows();
     renderLinhaCustos(rows);
@@ -466,7 +618,9 @@
     renderConsolidada(cons);
   }
 
-  // ---------- events ----------
+  // =========================
+  // EVENTS
+  // =========================
   $("btnAddIng").addEventListener("click", () => addIngredienteRow());
   $("btnLimparIng").addEventListener("click", () => {
     ingBody.innerHTML = "";
@@ -474,28 +628,27 @@
   });
   $("btnGerarLista").addEventListener("click", recalcAll);
 
-  $("btnAddEtapa").addEventListener("click", () => addEtapa());
-  $("btnLimparAtaque").addEventListener("click", () => {
-    listaAtaque.innerHTML = "";
-  });
-
   ["alunoNome","alunoRA","alunoTurma","receitaNome","rendimento","margem","modoPreparo"].forEach(id => {
     $(id).addEventListener("input", recalcAll);
   });
 
+  $("btnAddEtapa").addEventListener("click", addAtaqueEtapa);
+  $("btnAddReceita").addEventListener("click", addAtaqueReceita);
+  $("btnLimparAtaque").addEventListener("click", clearAtaque);
+
   $("btnImprimir").addEventListener("click", () => {
-    // monta impressão limpa antes de abrir o print
     const rows = getIngredientesRows();
     const cons = buildConsolidada(rows);
     buildPrintView(cons, rows);
     window.print();
   });
 
-  // ---------- init ----------
+  // =========================
+  // INIT
+  // =========================
   addIngredienteRow();
-  addEtapa();
+  renderAtaqueTable();
   recalcAll();
-
 })();
 </script>
 
